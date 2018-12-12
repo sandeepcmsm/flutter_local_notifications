@@ -1,5 +1,7 @@
 part of flutter_local_notifications;
 
+typedef Future<dynamic> MessageHandler(Map<String, dynamic> message);
+
 /// Signature of callback passed to [initialize]. Callback triggered when user taps on a notification
 typedef Future<dynamic> SelectNotificationCallback(String payload);
 
@@ -50,6 +52,31 @@ class Time {
   }
 }
 
+class IosNotificationSettings {
+  const IosNotificationSettings({
+    this.sound = true,
+    this.alert = true,
+    this.badge = true,
+  });
+
+  IosNotificationSettings._fromMap(Map<String, bool> settings)
+      : sound = settings['sound'],
+        alert = settings['alert'],
+        badge = settings['badge'];
+
+  final bool sound;
+  final bool alert;
+  final bool badge;
+
+  @visibleForTesting
+  Map<String, dynamic> toMap() {
+    return <String, bool>{'sound': sound, 'alert': alert, 'badge': badge};
+  }
+
+  @override
+  String toString() => 'PushNotificationSettings ${toMap()}';
+}
+
 class FlutterLocalNotificationsPlugin {
   factory FlutterLocalNotificationsPlugin() => _instance;
 
@@ -68,6 +95,10 @@ class FlutterLocalNotificationsPlugin {
   final Platform _platform;
 
   SelectNotificationCallback selectNotificationCallback;
+
+  MessageHandler _onMessage;
+  MessageHandler _onLaunch;
+  MessageHandler _onResume;
 
   /// Initializes the plugin. Call this method on application before using the plugin further
   Future<bool> initialize(InitializationSettings initializationSettings,
@@ -219,7 +250,26 @@ class FlutterLocalNotificationsPlugin {
   }
 
   Future _handleMethod(MethodCall call) {
-    return selectNotificationCallback(call.arguments);
+    switch (call.method) {
+      case "onToken":
+        final String token = call.arguments;
+        _tokenStreamController.add(token);
+        return null;
+      case "onIosSettingsRegistered":
+        _iosSettingsStreamController.add(IosNotificationSettings._fromMap(
+            call.arguments.cast<String, bool>()));
+        return null;
+      case "onMessage":
+        return _onMessage(call.arguments.cast<String, dynamic>());
+      case "onLaunch":
+        return _onLaunch(call.arguments.cast<String, dynamic>());
+      case "onResume":
+        return _onResume(call.arguments.cast<String, dynamic>());
+      case "selectNotification":
+        return selectNotificationCallback(call.arguments);
+      default:
+        throw UnsupportedError("Unrecognized JSON message");
+    }
   }
 
   void _validateId(int id) {
@@ -227,5 +277,88 @@ class FlutterLocalNotificationsPlugin {
       throw ArgumentError(
           'id must fit within the size of a 32-bit integer i.e. in the range [-2^31, 2^31 - 1]');
     }
+  }
+
+  /// Fcm related
+
+  /// On iOS, prompts the user for notification permissions the first time
+  /// it is called.
+  ///
+  /// Does nothing on Android.
+  void requestNotificationPermissions(
+      [IosNotificationSettings iosSettings = const IosNotificationSettings()]) {
+    if (!_platform.isIOS) {
+      return;
+    }
+    _channel.invokeMethod(
+        'requestNotificationPermissions', iosSettings.toMap());
+  }
+
+  final StreamController<IosNotificationSettings> _iosSettingsStreamController =
+      StreamController<IosNotificationSettings>.broadcast();
+
+  /// Stream that fires when the user changes their notification settings.
+  ///
+  /// Only fires on iOS.
+  Stream<IosNotificationSettings> get onIosSettingsRegistered {
+    return _iosSettingsStreamController.stream;
+  }
+
+  /// Sets up [MessageHandler] for incoming messages.
+  void configure({
+    MessageHandler onMessage,
+    MessageHandler onLaunch,
+    MessageHandler onResume,
+  }) {
+    _onMessage = onMessage;
+    _onLaunch = onLaunch;
+    _onResume = onResume;
+    _channel.setMethodCallHandler(_handleMethod);
+    _channel.invokeMethod('configure');
+  }
+
+  final StreamController<String> _tokenStreamController =
+      StreamController<String>.broadcast();
+
+  /// Fires when a new FCM token is generated.
+  Stream<String> get onTokenRefresh {
+    return _tokenStreamController.stream;
+  }
+
+  /// Returns the FCM token.
+  Future<String> getToken() async {
+    return await _channel.invokeMethod('getToken');
+  }
+
+  /// Subscribe to topic in background.
+  ///
+  /// [topic] must match the following regular expression:
+  /// "[a-zA-Z0-9-_.~%]{1,900}".
+  void subscribeToTopic(String topic) {
+    _channel.invokeMethod('subscribeToTopic', topic);
+  }
+
+  /// Unsubscribe from topic in background.
+  void unsubscribeFromTopic(String topic) {
+    _channel.invokeMethod('unsubscribeFromTopic', topic);
+  }
+
+  /// Resets Instance ID and revokes all tokens. In iOS, it also unregisters from remote notifications.
+  ///
+  /// A new Instance ID is generated asynchronously if Firebase Cloud Messaging auto-init is enabled.
+  ///
+  /// returns true if the operations executed successfully and false if an error ocurred
+  Future<bool> deleteInstanceID() async {
+    return await _channel.invokeMethod('deleteInstanceID');
+  }
+
+  /// Determine whether FCM auto-initialization is enabled or disabled.
+  Future<bool> autoInitEnabled() async {
+    return await _channel.invokeMethod('autoInitEnabled');
+  }
+
+  /// Enable or disable auto-initialization of Firebase Cloud Messaging.
+  Future<void> setAutoInitEnabled(bool enabled) async {
+    await _channel.invokeMethod('setAutoInitEnabled', enabled);
   }
 }
