@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <dimen name="common_dimen_15_dp">15dp</dimen>
+
+    <!-- ==============> Notification <============== -->
+    <dimen name="expanded_notification_height">256dp</dimen>
+    <dimen name="settings_tab_list_empty_msg_text_margin_top">@dimen/common_dimen_15_dp</dimen>
+
+</resources>

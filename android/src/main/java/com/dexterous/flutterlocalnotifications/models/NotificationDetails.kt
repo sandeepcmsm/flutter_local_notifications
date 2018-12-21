@@ -467,9 +467,7 @@ class NotificationDetails constructor(builder: Builder) {
                 notificationDetails.styleInformation = defaultStyleInformation
             } else if (notificationDetails.style == NotificationStyle.BigPicture) {
                 val contentTitle = styleInformation[CONTENT_TITLE] as String
-                val htmlFormatContentTitle = styleInformation[HTML_FORMAT_CONTENT_TITLE] as Boolean
                 val summaryText = styleInformation[SUMMARY_TEXT] as String
-                val htmlFormatSummaryText = styleInformation[HTML_FORMAT_SUMMARY_TEXT] as Boolean
                 val largeIcon = styleInformation[LARGE_ICON] as String
                 var largeIconBitmapSource: BitmapSource? = null
                 if (styleInformation.containsKey(LARGE_ICON_BITMAP_SOURCE)) {
@@ -479,15 +477,12 @@ class NotificationDetails constructor(builder: Builder) {
                 val bigPicture = styleInformation[BIG_PICTURE] as String
                 val bigPictureBitmapSourceArgument = styleInformation[BIG_PICTURE_BITMAP_SOURCE] as Int
                 val bigPictureBitmapSource = BitmapSource.values()[bigPictureBitmapSourceArgument]
-                notificationDetails.styleInformation = BigPictureStyleInformation(defaultStyleInformation.htmlFormatTitle, defaultStyleInformation.htmlFormatBody, contentTitle, htmlFormatContentTitle, summaryText, htmlFormatSummaryText, largeIcon, largeIconBitmapSource!!, bigPicture, bigPictureBitmapSource)
+                notificationDetails.styleInformation = BigPictureStyleInformation(contentTitle, summaryText, largeIcon, largeIconBitmapSource!!, bigPicture, bigPictureBitmapSource)
             } else if (notificationDetails.style == NotificationStyle.BigText) {
                 val bigText = styleInformation[BIG_TEXT] as String
-                val htmlFormatBigText = styleInformation[HTML_FORMAT_BIG_TEXT] as Boolean
                 val contentTitle = styleInformation[CONTENT_TITLE] as String
-                val htmlFormatContentTitle = styleInformation[HTML_FORMAT_CONTENT_TITLE] as Boolean
                 val summaryText = styleInformation[SUMMARY_TEXT] as String
-                val htmlFormatSummaryText = styleInformation[HTML_FORMAT_SUMMARY_TEXT] as Boolean
-                notificationDetails.styleInformation = BigTextStyleInformation(defaultStyleInformation.htmlFormatTitle, defaultStyleInformation.htmlFormatBody, bigText, htmlFormatBigText, contentTitle, htmlFormatContentTitle, summaryText, htmlFormatSummaryText)
+                notificationDetails.styleInformation = BigTextStyleInformation(bigText, contentTitle, summaryText)
             } else if (notificationDetails.style == NotificationStyle.Inbox) {
                 val contentTitle = styleInformation[CONTENT_TITLE] as String
                 val htmlFormatContentTitle = styleInformation[HTML_FORMAT_CONTENT_TITLE] as Boolean
@@ -495,14 +490,13 @@ class NotificationDetails constructor(builder: Builder) {
                 val htmlFormatSummaryText = styleInformation[HTML_FORMAT_SUMMARY_TEXT] as Boolean
                 val lines = styleInformation[LINES] as ArrayList<String>
                 val htmlFormatLines = styleInformation[HTML_FORMAT_LINES] as Boolean
-                notificationDetails.styleInformation = InboxStyleInformation(defaultStyleInformation.htmlFormatTitle, defaultStyleInformation.htmlFormatBody, contentTitle, htmlFormatContentTitle, summaryText, htmlFormatSummaryText, lines, htmlFormatLines)
+                notificationDetails.styleInformation = InboxStyleInformation(contentTitle, summaryText, lines)
             }
         }
 
         private fun getDefaultStyleInformation(styleInformation: Map<String, Any>): DefaultStyleInformation {
-            val htmlFormatTitle = styleInformation[HTML_FORMAT_TITLE] as Boolean
-            val htmlFormatBody = styleInformation[HTML_FORMAT_CONTENT] as Boolean
-            return DefaultStyleInformation(htmlFormatTitle, htmlFormatBody)
+
+            return DefaultStyleInformation("","")
         }
     }
 }

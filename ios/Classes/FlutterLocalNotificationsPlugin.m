@@ -91,10 +91,10 @@ typedef NS_ENUM(NSInteger, RepeatInterval) {
     FlutterLocalNotificationsPlugin *instance = [[FlutterLocalNotificationsPlugin alloc] initWithChannel:channel];
     headlessRunner = [[FlutterHeadlessDartRunner alloc] init];
     // callbackChannel = [FlutterMethodChannel methodChannelWithName:CALLBACK_CHANNEL binaryMessenger:headlessRunner];
-    if (@available(iOS 10.0, *)) {
-        UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
-        center.delegate = instance;
-    }
+//    if (@available(iOS 10.0, *)) {
+//        UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
+//        center.delegate = instance;
+//    }
 //    if (![FIRApp defaultApp]) {
 //    [FIRApp configure];
 //    [FIRMessaging messaging].delegate = self;
@@ -190,6 +190,7 @@ typedef NS_ENUM(NSInteger, RepeatInterval) {
 
 - (void)showNotification:(FlutterMethodCall *_Nonnull)call result:(FlutterResult _Nonnull)result {
     NotificationDetails *notificationDetails = [[NotificationDetails alloc] init];
+    notificationDetails.id = call.arguments[ID];
     notificationDetails.id = call.arguments[ID];
     notificationDetails.title = call.arguments[TITLE];
     notificationDetails.body = call.arguments[BODY];
@@ -569,12 +570,43 @@ didReceiveNotificationResponse:(UNNotificationResponse *)response
 
 // Receive data message on iOS 10 devices while app is in the foreground.
 - (void)applicationReceivedRemoteMessage:(FIRMessagingRemoteMessage *)remoteMessage {
+    NSLog(@"applicationReceivedRemoteMessage");
     [self didReceiveRemoteNotification:remoteMessage.appData];
 }
 
 #endif
 
+- (BOOL)application:(UIApplication *)application willFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+    NSLog(@"willFinishLaunchingWithOptions");
+    return YES;
+}
+
+- (void)applicationWillResignActive:(UIApplication *)application {
+    NSLog(@"applicationWillResignActive");
+}
+
+- (void)applicationWillEnterForeground:(UIApplication *)application {
+    NSLog(@"applicationWillEnterForeground");
+
+}
+
+- (void)applicationWillTerminate:(UIApplication *)application {
+    NSLog(@"applicationWillTerminate");
+
+}
+
+- (void)application:(UIApplication *)application didReceiveLocalNotification:(UILocalNotification *)notification {
+    NSLog(@"didReceiveLocalNotification");
+
+}
+
+- (void)messaging:(FIRMessaging *)messaging didReceiveMessage:(FIRMessagingRemoteMessage *)remoteMessage {
+    NSLog(@"didReceiveMessage");
+
+}
+
 - (void)didReceiveRemoteNotification:(NSDictionary *)userInfo {
+    NSLog(@"didReceiveRemoteNotification");
     if (appResumingFromBackground) {
         [channel invokeMethod:@"onResume" arguments:userInfo];
     } else {
@@ -618,6 +650,7 @@ didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
 - (bool)         application:(UIApplication *)application
 didReceiveRemoteNotification:(NSDictionary *)userInfo
       fetchCompletionHandler:(void (^)(UIBackgroundFetchResult result))completionHandler {
+    NSLog(@"didReceiveRemoteNotification");
     [self didReceiveRemoteNotification:userInfo];
     completionHandler(UIBackgroundFetchResultNoData);
     return YES;

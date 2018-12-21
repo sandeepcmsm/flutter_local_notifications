@@ -1,15 +1,18 @@
 package com.dexterous.flutterlocalnotifications.models.styles
 
+import android.graphics.Bitmap
 import com.dexterous.flutterlocalnotifications.BitmapSource
 import java.util.ArrayList
 
 abstract class StyleInformation
 
-open class DefaultStyleInformation(var htmlFormatTitle: Boolean?, var htmlFormatBody: Boolean?) : StyleInformation()
+open class DefaultStyleInformation(var contentTitle: String, var summaryText: String) : StyleInformation()
 
-class BigTextStyleInformation(htmlFormatTitle: Boolean?, htmlFormatBody: Boolean?, var bigText: String, var htmlFormatBigText: Boolean?, var contentTitle: String, var htmlFormatContentTitle: Boolean?, var summaryText: String, var htmlFormatSummaryText: Boolean?) : DefaultStyleInformation(htmlFormatTitle, htmlFormatBody)
+class BigTextStyleInformation(contentTitle: String, summaryText: String, var bigText: String) : DefaultStyleInformation(contentTitle, summaryText)
 
 
-class BigPictureStyleInformation(htmlFormatTitle: Boolean?, htmlFormatBody: Boolean?, var contentTitle: String, var htmlFormatContentTitle: Boolean?, var summaryText: String, var htmlFormatSummaryText: Boolean?, var largeIcon: String, var largeIconBitmapSource: BitmapSource, var bigPicture: String, var bigPictureBitmapSource: BitmapSource) : DefaultStyleInformation(htmlFormatTitle, htmlFormatBody)
+class BigPictureStyleInformation(contentTitle: String, summaryText: String, var largeIcon: String? = null, var largeIconBitmapSource: BitmapSource? = null, var bigPicture: String? = null, var bigPictureBitmapSource: BitmapSource? = null, var imageSource: BitmapSource? = null, var image: Bitmap? = null) : DefaultStyleInformation(contentTitle, summaryText)
 
-class InboxStyleInformation(htmlFormatTitle: Boolean?, htmlFormatBody: Boolean?, var contentTitle: String, var htmlFormatContentTitle: Boolean?, var summaryText: String, var htmlFormatSummaryText: Boolean?, var lines: ArrayList<String>, var htmlFormatLines: Boolean?) : DefaultStyleInformation(htmlFormatTitle, htmlFormatBody)
+class InboxStyleInformation(contentTitle: String, summaryText: String, var lines: ArrayList<String>) : DefaultStyleInformation(contentTitle, summaryText)
+
+class MessageStyleInformation(var title: String, var message: String?, var timeStamp: Long? = null, var sender: String? = null, var isDirect:Boolean? = false) : StyleInformation()

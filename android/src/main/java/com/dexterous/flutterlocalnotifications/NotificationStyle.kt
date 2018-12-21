@@ -4,7 +4,8 @@ enum class NotificationStyle {
     Default,
     BigPicture,
     BigText,
-    Inbox
+    Inbox,
+    Message
 }
 
 
